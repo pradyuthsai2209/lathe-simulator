@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMT Heavy Duty Lathe L45 / L50 / L60 / L70 Digital Twin Simulator</title>
+
+  <!-- Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Three.js & OrbitControls for 3D Digital Twin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/cockpit.css">
+  <link rel="stylesheet" href="css/controls.css">
+  <link rel="stylesheet" href="css/telemetry.css">
+  <link rel="stylesheet" href="css/graphs.css">
+  <link rel="stylesheet" href="css/bench.css">
+  <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+  <!-- Top Technical Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo-badge">HMT LATHE</div>
+      <div class="brand-title">
+        <h1>HEAVY DUTY LATHE SIMULATOR</h1>
+        <span class="brand-sub">SERIES L45 • L50 • L60 • L70 | INDUSTRIAL DIGITAL TWIN</span>
+      </div>
+    </div>
+
+    <!-- Reference Top Navigation Tabs -->
+    <nav class="top-nav-tabs">
+      <button class="nav-tab-btn active" data-tab="cockpit">
+        <span>🎛</span> 3D Live Cockpit
+      </button>
+      <button class="nav-tab-btn" data-tab="graphs">
+        <span>📈</span> Performance Graphs Studio
+      </button>
+      <button class="nav-tab-btn" data-tab="bench">
+        <span>🧪</span> Test Cases & Data Bench
+      </button>
+    </nav>
+
+    <div class="header-right-meta">
+      <div class="live-sync-pill">
+        <span class="live-dot"></span>
+        <span>50Hz SYNC ENGINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Active Interlocks & Safety Alerts Banner -->
+  <div id="active-alerts-banner" class="active-alerts-banner"></div>
+
+  <!-- Main Content Panels -->
+  <main class="app-workspace">
+
+    <!-- TAB 1: 3D LIVE COCKPIT -->
+    <section id="tab-panel-cockpit" class="tab-content-panel active">
+      <div class="cockpit-container">
+        
+        <!-- Top Row: 3D Viewport on Left, Operator Controls on Right -->
+        <div class="cockpit-main-row">
+          
+          <!-- 3D Digital Twin Viewport -->
+          <div class="viewport-panel">
+            <div class="viewport-header">
+              <div class="viewport-title">
+                <span>⚡ 3D CUTAWAY DIGITAL TWIN</span>
+              </div>
+              <div class="view-controls-bar">
+                <button class="view-preset-btn active" data-view="isometric">Isometric</button>
+                <button class="view-preset-btn" data-view="gearbox">Gearbox</button>
+                <button class="view-preset-btn" data-view="spindle">Spindle</button>
+                <button class="view-preset-btn" data-view="tool">Cutting Tool</button>
+                <button class="view-preset-btn" data-view="tailstock">Tailstock</button>
+                <button class="view-preset-btn" data-view="autorotate">Auto Rotate</button>
+                <button class="view-preset-btn" data-view="reset">Reset View</button>
+              </div>
+            </div>
+
+            <!-- Viewport 3D Canvas -->
+            <div id="lathe-3d-viewport" class="lathe-3d-viewport"></div>
+
+            <!-- 3D HUD Badge Overlay -->
+            <div class="viewport-hud-overlay">
+              <div class="hud-item">
+                <span class="hud-label">VARIANT:</span>
+                <span id="hud-3d-variant" class="hud-badge">HMT L45</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">SPEED:</span>
+                <span id="hud-3d-speed" class="hud-badge">STEP 16: 140 RPM</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">FEED:</span>
+                <span id="hud-3d-feed" class="hud-badge">FEED ROD (0.30 mm/rev)</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">STATE:</span>
+                <span id="hud-3d-status" class="hud-badge">STOPPED</span>
+              </div>
+            </div>
+
+            <!-- Viewport Controls Hint -->
+            <div class="viewport-hint-overlay">
+              Left Drag: Orbit • Right Drag: Pan • Wheel: Zoom
+            </div>
+          </div>
+
+          <!-- 02 / Lathe Operator Controls Panel -->
+          <div class="operator-panel">
+            <div class="operator-panel-header">
+              <h2><span>⚙</span> OPERATOR CONTROL PANEL</h2>
+            </div>
+
+            <div class="operator-scroll-body">
+              
+              <!-- Machine Variant Selector -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Machine Variant</span>
+                  <span class="font-mono text-muted text-10">4 HEAVY DUTY MODELS</span>
+                </div>
+                <div id="variant-buttons-container" class="variant-buttons-grid">
+                  <!-- Injected via ControlsUI -->
+                </div>
+              </div>
+
+              <!-- Power & Spindle Main Drive -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Main Spindle Drive</span>
+                  <span class="font-mono text-muted text-10">3-PHASE 415V</span>
+                </div>
+                <div class="power-spindle-row">
+                  <div class="power-switch-wrapper">
+                    <span class="switch-label">ISOLATOR</span>
+                    <label class="switch">
+                      <input type="checkbox" id="control-power-toggle" checked>
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="spindle-button-group">
+                    <button id="btn-spindle-fwd" class="spindle-btn btn-fwd">▶ FWD</button>
+                    <button id="btn-spindle-stop" class="spindle-btn btn-stop">■ STOP</button>
+                    <button id="btn-spindle-rev" class="spindle-btn btn-rev">◀ REV</button>
+                    <button id="btn-spindle-jog" class="spindle-btn btn-jog">JOG</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Headstock Speed Gearbox -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Headstock Speed Gearbox</span>
+                  <span class="font-mono text-muted text-10">21 SPEED STEPS</span>
+                </div>
+                <div class="ctrl-row">
+                  <label for="control-speed-step-select">Speed Step:</label>
+                  <select id="control-speed-step-select" class="select-control" style="width: 220px;">
+                    <!-- Injected via ControlsUI -->
+                  </select>
+                </div>
+                <div id="gear-shift-warning" class="control-warning-text"></div>
+              </div>
+
+              <!-- Feed & Threading Gearbox (Norton) -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Feed & Threading Gearbox</span>
+                  <span id="apron-interlock-status" class="font-mono text-cyan text-10">FEED ROD ENGAGED</span>
+                </div>
+                <div class="feed-mode-group">
+                  <button class="feed-mode-btn" data-mode="neutral">Neutral</button>
+                  <button class="feed-mode-btn active" data-mode="longitudinal">Z-Turn</button>
+                  <button class="feed-mode-btn" data-mode="cross">X-Face</button>
+                  <button class="feed-mode-btn" data-mode="threading">Threading</button>
+                </div>
+
+                <div id="feed-rate-box" class="ctrl-row" style="margin-top: 4px;">
+                  <label>Feed Rate (f):</label>
+                  <div style="display:flex; gap:6px;">
+                    <select id="control-feed-rate-select" class="select-control" style="width: 120px;">
+                      <!-- Injected via ControlsUI -->
+                    </select>
+                    <input type="number" id="control-feed-rate-input" class="input-control" style="width: 70px;" step="0.05" min="0.05" max="6.4" />
+                  </div>
+                </div>
+
+                <div id="thread-pitch-box" class="ctrl-row" style="margin-top: 4px; opacity: 0.5;">
+                  <label>Thread Pitch (Lead Screw):</label>
+                  <select id="control-thread-pitch-select" class="select-control" style="width: 196px;">
+                    <!-- Injected via ControlsUI -->
+                  </select>
+                </div>
+              </div>
+
+              <!-- Machining Parameters: DOC & Tool Position -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Machining Parameters</span>
+                </div>
+
+                <div class="slider-row">
+                  <div class="slider-header">
+                    <span>Depth of Cut (ap):</span>
+                    <span id="control-doc-val" class="slider-val">3.0 mm</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="range" id="control-doc-slider" class="range-slider" min="0" max="12" step="0.1" value="3.0">
+                    <input type="number" id="control-doc-input" class="input-control" style="width: 65px;" min="0" max="12" step="0.1" value="3.0">
+                  </div>
+                </div>
+
+                <div class="slider-row" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>Carriage Z Position (Bed Axis):</span>
+                    <span id="control-carriage-z-val" class="slider-val">450 mm</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="range" id="control-carriage-z-slider" class="range-slider" min="40" max="2500" step="10" value="450">
+                    <input type="number" id="control-carriage-z-input" class="input-control" style="width: 65px;" min="40" max="2500" step="1" value="450">
+                  </div>
+                </div>
+
+                <div class="ctrl-row" style="margin-top: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <label class="switch" style="width: 36px; height: 18px;">
+                      <input type="checkbox" id="control-coolant-toggle" checked>
+                      <span class="slider"></span>
+                    </label>
+                    <span style="font-family: var(--font-mono); font-size: 11px;">Flood Coolant Pump</span>
+                  </div>
+
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <label class="switch" style="width: 36px; height: 18px;">
+                      <input type="checkbox" id="control-tailstock-toggle" checked>
+                      <span class="slider"></span>
+                    </label>
+                    <span style="font-family: var(--font-mono); font-size: 11px;">Tailstock Center</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Workpiece & Tool Setup -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Workpiece & Tooling</span>
+                </div>
+                <div class="ctrl-row">
+                  <label>Material:</label>
+                  <select id="control-material-select" class="select-control" style="width: 220px;"></select>
+                </div>
+                <div class="ctrl-row" style="margin-top: 4px;">
+                  <label>Stock Diameter & Length:</label>
+                  <div style="display: flex; gap: 6px;">
+                    <input type="number" id="control-workpiece-dia-input" class="input-control" style="width: 75px;" value="250" placeholder="Dia mm" />
+                    <input type="number" id="control-workpiece-len-input" class="input-control" style="width: 75px;" value="1200" placeholder="Len mm" />
+                  </div>
+                </div>
+                <div class="ctrl-row" style="margin-top: 4px;">
+                  <label>Tool Material:</label>
+                  <select id="control-tool-material-select" class="select-control" style="width: 220px;"></select>
+                </div>
+
+                <div class="slider-row" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>Tool Overhang:</span>
+                    <span id="control-tool-overhang-val" class="slider-val">45 mm</span>
+                  </div>
+                  <input type="range" id="control-tool-overhang-slider" class="range-slider" min="30" max="120" step="5" value="45">
+                </div>
+
+                <div class="slider-row" style="margin-top: 6px;">
+                  <div class="slider-header">
+                    <span>Tool Flank Wear (VB):</span>
+                    <span id="control-tool-wear-val" class="slider-val">0.05 mm</span>
+                  </div>
+                  <input type="range" id="control-tool-wear-slider" class="range-slider" min="0" max="0.4" step="0.02" value="0.05">
+                </div>
+              </div>
+
+              <!-- Operational Presets -->
+              <div class="ctrl-section">
+                <div class="ctrl-section-title">
+                  <span>Operational Presets</span>
+                </div>
+                <div class="presets-grid">
+                  <button id="preset-spindle-idle" class="preset-btn">Spindle Idle</button>
+                  <button id="preset-facing" class="preset-btn">Facing</button>
+                  <button id="preset-straight-turning" class="preset-btn">Straight Turning</button>
+                  <button id="preset-heavy-cut" class="preset-btn">Heavy Cut</button>
+                  <button id="preset-threading" class="preset-btn">Threading</button>
+                  <button id="preset-drilling" class="preset-btn">Drilling</button>
+                  <button id="preset-vibration-wear" class="preset-btn btn-warning-preset">High Vibration/Wear</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Telemetry Cards (16+ Channels) -->
+        <div class="telemetry-section">
+          <div class="telemetry-header">
+            <h3 class="section-heading"><span>📊</span> LIVE MACHINE TELEMETRY CARDS</h3>
+            <span class="font-mono text-muted text-11">COHERENT DETERMINISTIC MODEL STREAM</span>
+          </div>
+
+          <div class="telemetry-cards-grid">
+            <!-- 1. Motor Speed -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Motor Speed</span>
+                <span class="card-unit">RPM</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-motor-rpm" class="card-value">0.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">4-Pole 50Hz Induction</span>
+            </div>
+
+            <!-- 2. Gearbox Input Speed -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Gearbox Input</span>
+                <span class="card-unit">RPM</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-gearbox-input-rpm" class="card-value">0.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Primary Belt Coupling</span>
+            </div>
+
+            <!-- 3. Spindle Speed -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Spindle Speed</span>
+                <span class="card-unit">RPM</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-spindle-rpm" class="card-value highlight-cyan">0.0</span>
+              </div>
+              <div class="mini-gauge">
+                <div id="gauge-spindle-rpm-bar" class="gauge-fill bar-normal"></div>
+              </div>
+            </div>
+
+            <!-- 4. Feed Shaft Speed -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Feed Shaft Speed</span>
+                <span class="card-unit">RPM</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-feed-shaft-rpm" class="card-value">0.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Rod / Lead Screw</span>
+            </div>
+
+            <!-- 5. Cutting Torque -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Cutting Torque</span>
+                <span class="card-unit">N·m</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-cutting-torque" class="card-value highlight-amber">0.00</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Mc = Fc · (D / 2000)</span>
+            </div>
+
+            <!-- 6. Spindle Cutting Power -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Spindle Power</span>
+                <span class="card-unit">kW</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-spindle-power" class="card-value highlight-green">0.00</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Net Mechanical Cut</span>
+            </div>
+
+            <!-- 7. Motor Electrical Power -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Motor Input Power</span>
+                <span class="card-unit">kW</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-motor-power" class="card-value highlight-amber">0.00</span>
+              </div>
+              <div class="mini-gauge">
+                <div id="gauge-power-bar" class="gauge-fill bar-normal"></div>
+              </div>
+            </div>
+
+            <!-- 8. Supply Voltage -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Supply Voltage</span>
+                <span class="card-unit">V</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-voltage" class="card-value">415.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">3-Phase 50 Hz Line</span>
+            </div>
+
+            <!-- 9. Line Current -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Line Current</span>
+                <span class="card-unit">A</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-current" class="card-value highlight-amber">0.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">I = P / (√3·V·cosφ)</span>
+            </div>
+
+            <!-- 10. Drive Frequency -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Drive Frequency</span>
+                <span class="card-unit">Hz</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-frequency" class="card-value">50.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Grid Synchronous</span>
+            </div>
+
+            <!-- 11. Selected Speed Step -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Speed Step</span>
+                <span class="card-unit">Step</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-speed-step" class="card-value" style="font-size: 14px;">14 (140 RPM)</span>
+              </div>
+              <span class="font-mono text-subtle text-10">HMT 21-Step Transmission</span>
+            </div>
+
+            <!-- 12. Coolant Temperature -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Coolant Temp</span>
+                <span class="card-unit">°C</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-coolant-temp" class="card-value">25.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">150L Sump Tank</span>
+            </div>
+
+            <!-- 13. Cutting Zone Temperature -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Cutting Zone Temp</span>
+                <span class="card-unit">°C</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-cutting-zone-temp" class="card-value highlight-amber">25.0</span>
+              </div>
+              <div class="mini-gauge">
+                <div id="gauge-temp-bar" class="gauge-fill bar-normal"></div>
+              </div>
+            </div>
+
+            <!-- 14. Energy Use Rate -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Energy Rate</span>
+                <span class="card-unit">kW</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-energy-rate" class="card-value">0.000</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Instantaneous Power</span>
+            </div>
+
+            <!-- 15. Cumulative Energy -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Cumulative Energy</span>
+                <span class="card-unit">kWh</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-cumulative-energy" class="card-value highlight-purple">0.0000</span>
+              </div>
+              <span class="font-mono text-subtle text-10">∫ Pe dt Log</span>
+            </div>
+
+            <!-- 16. Vibration RMS -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Vibration RMS</span>
+                <span class="card-unit">mm/s</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-vibration-rms" class="card-value highlight-cyan">0.35</span>
+              </div>
+              <div class="mini-gauge">
+                <div id="gauge-vibration-bar" class="gauge-fill bar-normal"></div>
+              </div>
+            </div>
+
+            <!-- 17. Spindle Speed Error / Slip -->
+            <div class="telemetry-card">
+              <div class="card-top-row">
+                <span class="card-label">Spindle Speed Error</span>
+                <span class="card-unit">RPM</span>
+              </div>
+              <div class="card-value-row">
+                <span id="card-spindle-slip" class="card-value">0.0</span>
+              </div>
+              <span class="font-mono text-subtle text-10">Motor Slip Deviation</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 04 / Calculated Lathe Metrics Table -->
+        <div class="metrics-table-panel">
+          <div class="metrics-panel-header">
+            <h3 class="section-heading"><span>📐</span> 04 / CALCULATED LATHE METRICS & KINEMATICS</h3>
+            <span class="font-mono text-muted text-11">DERIVED FROM COUPLED PHYSICAL LAWS</span>
+          </div>
+          <div class="metrics-table-responsive">
+            <table class="calculated-metrics-table">
+              <thead>
+                <tr>
+                  <th>Calculated Metric</th>
+                  <th>Current Value</th>
+                  <th>Unit</th>
+                  <th>Mathematical Formulation / Origin</th>
+                </tr>
+              </thead>
+              <tbody id="calculated-metrics-tbody">
+                <!-- Injected via TelemetryUI -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: PERFORMANCE GRAPHS STUDIO -->
+    <section id="tab-panel-graphs" class="tab-content-panel">
+      <div class="graphs-studio-container">
+        
+        <!-- Graphs Studio Toolbar -->
+        <div class="graphs-toolbar">
+          <div class="toolbar-group">
+            <span class="toolbar-label">Chart Channel:</span>
+            <select id="graphs-channel-mode-select" class="select-control" style="width: 290px;">
+              <option value="speeds_vs_time">1. Speeds (Motor, Gearbox, Spindle, Feed) vs Time</option>
+              <option value="speed_vs_torque">2. Spindle Speed vs Cutting Torque (XY Envelope)</option>
+              <option value="power_vs_time">3. Spindle & Motor Input Power vs Time</option>
+              <option value="vibration_vs_time">4. Vibration RMS vs Time (ISO 10816 Zones)</option>
+              <option value="temperature_vs_time">5. Coolant & Cutting Zone Temp vs Time</option>
+              <option value="electrical_vs_time">6. Electrical Power, Current, Energy vs Time</option>
+              <option value="cutting_force_mrr">7. Cutting Force Fc & MRR vs Time</option>
+              <option value="multi_channel_overview">8. Multi-Channel Telemetry Overview</option>
+            </select>
+          </div>
+
+          <div class="toolbar-group">
+            <span class="toolbar-label">Time Window:</span>
+            <div class="time-window-group">
+              <button class="time-window-btn" data-seconds="5">5s</button>
+              <button class="time-window-btn" data-seconds="10">10s</button>
+              <button class="time-window-btn active" data-seconds="30">30s</button>
+              <button class="time-window-btn" data-seconds="60">60s</button>
+              <button class="time-window-btn" data-seconds="120">120s</button>
+              <button class="time-window-btn" data-seconds="0">All</button>
+            </div>
+          </div>
+
+          <div class="toolbar-group">
+            <button id="btn-graphs-toggle-rec" class="status-btn"><span>⏸</span> Pause Rec</button>
+            <button id="btn-graphs-clear-hist" class="status-btn"><span>🗑</span> Clear</button>
+            <button id="btn-graphs-export-csv" class="status-btn btn-primary"><span>⬇</span> Export Graph CSV</button>
+          </div>
+        </div>
+
+        <!-- Live Statistics Row (Active, Min, Max, Mean) -->
+        <div id="graphs-stats-row" class="graphs-stats-row">
+          <!-- Injected via GraphsStudio -->
+        </div>
+
+        <!-- Canvas Chart Viewport -->
+        <div class="graphs-canvas-viewport">
+          <canvas id="graphs-main-canvas"></canvas>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: TEST CASES & DATA BENCH -->
+    <section id="tab-panel-bench" class="tab-content-panel">
+      <div class="bench-container">
+        
+        <!-- Left Sidebar: Test Suite Selection -->
+        <aside class="bench-sidebar">
+          <div class="bench-sidebar-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="section-heading" style="font-size:12px;">TEST CASE SUITE</span>
+              <button id="btn-bench-new-test" class="status-btn" style="padding: 2px 6px; font-size:10px;">+ New Test</button>
+            </div>
+            <input type="text" id="bench-test-search-input" class="bench-search-input" placeholder="Search test cases by ID, name..." />
+          </div>
+
+          <div id="bench-test-list-container" class="bench-test-list">
+            <!-- Injected via TestBench -->
+          </div>
+        </aside>
+
+        <!-- Right Main: Selected Test Execution & Time-Series Data -->
+        <div class="bench-main-content">
+          
+          <!-- Actions Toolbar -->
+          <div class="bench-actions-toolbar">
+            <div style="display:flex; gap:8px;">
+              <button id="btn-bench-run-selected" class="bench-action-btn btn-run-primary"><span>▶</span> Run Selected Test</button>
+              <button id="btn-bench-run-all" class="bench-action-btn"><span>⚡</span> Run All Tests</button>
+              <button id="btn-bench-duplicate-test" class="bench-action-btn"><span>📋</span> Duplicate</button>
+              <button id="btn-bench-clear-dataset" class="bench-action-btn"><span>🗑</span> Clear Dataset</button>
+            </div>
+            <div>
+              <button id="btn-bench-export-csv" class="bench-action-btn btn-primary"><span>⬇</span> Export Test CSV (19 Channels)</button>
+            </div>
+          </div>
+
+          <!-- Execution Progress Bar -->
+          <div class="bench-progress-wrapper">
+            <div class="bench-progress-track">
+              <div id="bench-run-progress-bar" class="bench-progress-fill"></div>
+            </div>
+            <span id="bench-run-status-text" class="bench-progress-status">Ready to execute benchmark test suite.</span>
+          </div>
+
+          <!-- Selected Test Header Details & Pass/Fail Criteria -->
+          <div class="bench-detail-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h3 id="bench-selected-test-title" class="section-heading" style="font-size:14px;">TC-01: Spindle Idle Baseline</h3>
+                <p id="bench-selected-test-desc" style="color:var(--text-muted); font-size:11px; margin-top:2px;"></p>
+              </div>
+            </div>
+
+            <div id="bench-selected-test-params" class="bench-detail-params"></div>
+
+            <div style="margin-top:4px;">
+              <span class="font-mono text-dim text-10 text-bold">ACCEPTANCE CRITERIA VALIDATION:</span>
+              <div id="bench-selected-test-criteria" class="bench-detail-criteria" style="margin-top:4px;"></div>
+            </div>
+
+            <!-- Run Summary Statistics -->
+            <div id="bench-summary-card-container" class="bench-summary-row" style="margin-top:4px;"></div>
+          </div>
+
+          <!-- Multi-Test Overlay Comparison Chart -->
+          <div class="bench-overlay-panel">
+            <div class="bench-overlay-header">
+              <span class="section-heading" style="font-size:11px;">MULTI-TEST OVERLAY COMPARISON</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span class="font-mono text-dim text-10">Channel:</span>
+                <select id="bench-overlay-channel-select" class="select-control" style="width:170px; padding:2px 6px;">
+                  <option value="spindlePowerKw">Spindle Power (kW)</option>
+                  <option value="motorInputPowerKw">Motor Input Power (kW)</option>
+                  <option value="cuttingTorqueNm">Cutting Torque (N·m)</option>
+                  <option value="vibrationRmsMmS">Vibration RMS (mm/s)</option>
+                  <option value="cuttingZoneTempC">Cutting Zone Temp (°C)</option>
+                  <option value="spindleRpm">Spindle RPM</option>
+                </select>
+              </div>
+            </div>
+            <div class="bench-overlay-canvas-wrapper">
+              <canvas id="bench-overlay-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Time-Series 19-Channel Data Table -->
+          <div class="bench-table-panel">
+            <div class="bench-table-header">
+              <span class="section-heading" style="font-size:11px;">19-CHANNEL TIME-SERIES BENCHMARK LOG</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="font-mono text-dim text-10">Rows:</span>
+                <select id="bench-page-size-select" class="select-control" style="width:75px; padding:2px 4px;">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="bench-table-scroll">
+              <table class="bench-data-table">
+                <thead>
+                  <tr>
+                    <th>Time (s)</th>
+                    <th>State</th>
+                    <th>Motor RPM</th>
+                    <th>Gearbox In</th>
+                    <th>Spindle RPM</th>
+                    <th>Feed Shaft</th>
+                    <th>Torque (N·m)</th>
+                    <th>Spindle kW</th>
+                    <th>Motor kW</th>
+                    <th>Voltage (V)</th>
+                    <th>Current (A)</th>
+                    <th>Freq (Hz)</th>
+                    <th>Speed Step</th>
+                    <th>Coolant °C</th>
+                    <th>Cutting °C</th>
+                    <th>Energy kW</th>
+                    <th>Cumul kWh</th>
+                    <th>Vib mm/s</th>
+                    <th>Slip RPM</th>
+                  </tr>
+                </thead>
+                <tbody id="bench-data-table-tbody">
+                  <!-- Injected via TestBench -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bench-pagination-bar">
+              <span id="bench-page-info">Page 1 of 1</span>
+              <div class="pagination-controls">
+                <button id="bench-table-prev" class="page-btn">◀ Prev</button>
+                <button id="bench-table-next" class="page-btn">Next ▶</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Persistent Bottom Status Bar -->
+  <footer class="app-status-bar">
+    <div class="status-left">
+      <span id="status-variant-badge" class="status-variant-tag">HMT L45</span>
+      <span class="status-time">T: <span id="status-sim-time" class="text-cyan">0.0s</span></span>
+      <span id="status-operating-state" class="status-pill state-stopped">STOPPED</span>
+    </div>
+
+    <div class="status-right-controls">
+      <button id="btn-open-model-config" class="status-btn"><span>⚙</span> Model Config</button>
+      <button id="btn-status-pause" class="status-btn"><span>⏸</span> Pause</button>
+      <button id="btn-status-reset" class="status-btn"><span>↺</span> Reset</button>
+      <button id="btn-status-export-log" class="status-btn btn-primary"><span>⬇</span> Export Live Log (19 Ch)</button>
+    </div>
+  </footer>
+
+  <!-- Modal: Model Configuration & Engineering Formulas -->
+  <div id="model-config-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2><span>⚙</span> MODEL CONFIGURATION & ENGINEERING SPECIFICATIONS</h2>
+        <button id="btn-close-model-config" class="modal-close-btn">✕</button>
+      </div>
+
+      <nav class="modal-nav-tabs">
+        <button class="modal-tab-btn active" data-tab="variants">Variant Specifications</button>
+        <button class="modal-tab-btn" data-tab="constants">Physical Constants</button>
+        <button class="modal-tab-btn" data-tab="formulas">Formulas & Architecture</button>
+        <button class="modal-tab-btn" data-tab="assumptions">Model Assumptions</button>
+      </nav>
+
+      <div class="modal-body">
+        
+        <!-- Tab Pane 1: Variant Specs Table -->
+        <div id="tab-pane-variants" class="modal-tab-pane active">
+          <div style="background:var(--bg-card); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11px; color:var(--text-muted);">
+            Specifications verified against published <strong>HMT Machine Tools Limited</strong> heavy-duty lathe documentation.
+            Estimated or standard industrial values are clearly distinguished and can be edited below.
+          </div>
+          <div id="config-variant-table-container"></div>
+        </div>
+
+        <!-- Tab Pane 2: Physical & Machine Constants -->
+        <div id="tab-pane-constants" class="modal-tab-pane">
+          <div id="config-constants-form-container"></div>
+        </div>
+
+        <!-- Tab Pane 3: Mathematical Formulas -->
+        <div id="tab-pane-formulas" class="modal-tab-pane">
+          <div class="formula-cards-grid">
+            <div class="formula-card">
+              <div class="formula-title">Cutting Speed (Vc)</div>
+              <div class="formula-math">Vc = (π · D · N_spindle) / 1000  [m/min]</div>
+              <div class="formula-desc">Surface linear velocity at tool tip. D in mm, N in RPM.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Kienzle Cutting Force (Fc)</div>
+              <div class="formula-math">Fc = kc1.1 · ap · f^(1 - mc) · (1 - γ/100) · K_wear · K_cool  [N]</div>
+              <div class="formula-desc">Tangential cutting force with tool rake angle γ, flank wear, and coolant lubrication factors.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Spindle Cutting Torque (Mc)</div>
+              <div class="formula-math">Mc = Fc · (D / 2000)  [N·m]</div>
+              <div class="formula-desc">Rotational moment exerted on workpiece and spindle bearings.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Spindle Cutting Power (Pc)</div>
+              <div class="formula-math">Pc = (Fc · Vc) / 60000  [kW]</div>
+              <div class="formula-desc">Net mechanical cutting power absorbed at the shear plane.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Motor Electrical Power (Pe)</div>
+              <div class="formula-math">Pe = ((Pc / η_mech) + P_tare) / η_elec  [kW]</div>
+              <div class="formula-desc">Total 3-phase grid power accounting for headstock gear train friction and motor efficiency.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">3-Phase Line Current (I)</div>
+              <div class="formula-math">I = (Pe · 1000) / (√3 · VL · cos φ)  [A]</div>
+              <div class="formula-desc">Line current at nominal 415V supply with dynamic power factor cos φ.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Material Removal Rate (MRR)</div>
+              <div class="formula-math">MRR = Vc · ap · f  [cm³/min]</div>
+              <div class="formula-desc">Volumetric stock reduction rate per minute.</div>
+            </div>
+
+            <div class="formula-card">
+              <div class="formula-title">Loewen & Shaw Flash Temperature</div>
+              <div class="formula-math">ΔT = (0.38 · kc / ρCp) · (Vc · f / α)^0.33  [°C]</div>
+              <div class="formula-desc">Cutting zone interface temperature rise based on workpiece thermal diffusivity α.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Pane 4: Model Assumptions -->
+        <div id="tab-pane-assumptions" class="modal-tab-pane">
+          <div class="assumptions-box">
+            <ul class="assumptions-list">
+              <li><strong>Deterministic Fixed-Step Solver:</strong> Simulation state evolves with a constant 50 Hz physics step (dt = 0.02 s) to ensure 100% reproducible test benchmarking.</li>
+              <li><strong>Headstock Transmission Kinematics:</strong> Geared reduction ratios represent authentic HMT 21-step geometric progression (4.5 to 450 RPM). Shift interlocks prevent shifting while spindle rotates.</li>
+              <li><strong>Apron Interlock Mechanism:</strong> Half-nut threading and feed rod turning clutches cannot be engaged simultaneously, accurately reflecting the mechanical interlocking apron cam in HMT lathes.</li>
+              <li><strong>Induction Motor Slip Model:</strong> Symmetrical 4-pole 3-phase induction motor with torque-speed curve and proportional slip under load.</li>
+              <li><strong>Regenerative Chatter & Vibration:</strong> ISO 10816 vibration severity evaluated from baseline unbalance plus dynamic cutting force amplification when tool overhang or depth of cut exceeds stability boundaries.</li>
+              <li><strong>Educational Digital Twin:</strong> Built for engineering analysis, training, and operational simulation. Specifications reflect manufacturer data for L45/L50/L60/L70 with editable parameters for research.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-reset-model-config" class="btn-modal-reset">↺ Reset to Factory HMT Defaults</button>
+        <div class="footer-btn-group">
+          <button id="btn-modal-close-footer" class="btn-modal-cancel">Cancel</button>
+          <button id="btn-save-model-config" class="btn-modal-save">Save & Apply Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: New Custom Test Case -->
+  <div id="modal-new-test" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2><span>+</span> CREATE CUSTOM TEST BENCH CASE</h2>
+        <button id="btn-close-new-test" class="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>
+            <label style="font-family:var(--font-mono); font-size:11px;">Test Name:</label>
+            <input type="text" id="new-test-name" class="input-control" style="width:100%;" value="Custom Stress Benchmark" />
+          </div>
+          <div>
+            <label style="font-family:var(--font-mono); font-size:11px;">Machine Variant:</label>
+            <select id="new-test-variant" class="select-control" style="width:100%;">
+              <option value="L45">HMT L45</option>
+              <option value="L50">HMT L50</option>
+              <option value="L60">HMT L60</option>
+              <option value="L70">HMT L70</option>
+            </select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-family:var(--font-mono); font-size:11px;">Speed Step Index (0-20):</label>
+              <input type="number" id="new-test-speed" class="input-control" style="width:100%;" value="13" min="0" max="20" />
+            </div>
+            <div>
+              <label style="font-family:var(--font-mono); font-size:11px;">Feed Mode:</label>
+              <select id="new-test-feedmode" class="select-control" style="width:100%;">
+                <option value="longitudinal">Longitudinal Turning</option>
+                <option value="cross">Cross Facing</option>
+                <option value="threading">Threading</option>
+                <option value="neutral">Neutral</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-family:var(--font-mono); font-size:11px;">Feed Rate (mm/rev):</label>
+              <input type="number" id="new-test-feedrate" class="input-control" style="width:100%;" value="0.30" step="0.05" />
+            </div>
+            <div>
+              <label style="font-family:var(--font-mono); font-size:11px;">Depth of Cut (mm):</label>
+              <input type="number" id="new-test-doc" class="input-control" style="width:100%;" value="3.0" step="0.5" />
+            </div>
+          </div>
+          <div>
+            <label style="font-family:var(--font-mono); font-size:11px;">Duration (seconds):</label>
+            <input type="number" id="new-test-duration" class="input-control" style="width:100%;" value="10.0" step="1" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-new-test" class="btn-modal-save" style="width:100%;">Create & Select Test Case</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main ES6 Application Orchestrator -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
